@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Arbeitszeit">
+<title>Arbeitszeit</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #111827;
+  --panel: rgba(255, 255, 255, 0.08);
+  --panel-strong: rgba(255, 255, 255, 0.13);
+  --line: rgba(255, 255, 255, 0.14);
+  --text: #f8fafc;
+  --muted: #a8b3c7;
+  --blue: #0a84ff;
+  --green: #30d158;
+  --orange: #ff9f0a;
+  --red: #ff453a;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  padding: max(18px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom));
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(10, 132, 255, 0.24), transparent 30%),
+    linear-gradient(180deg, #263244 0%, #111827 42%, #05070c 100%);
+  color: var(--text);
+}
+
+button, input, textarea {
+  font: inherit;
+}
+
+.app {
+  width: min(100%, 520px);
+  margin: 0 auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand img {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+h1 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.date-label {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.status-pill {
+  flex: 0 0 auto;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  margin-bottom: 14px;
+  padding: 15px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(22px);
+}
+
+.hero-time {
+  display: grid;
+  gap: 6px;
+  text-align: center;
+  padding: 14px 0 10px;
+}
+
+.clock {
+  font-size: clamp(42px, 14vw, 68px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.metric {
+  min-width: 0;
+  border-radius: 14px;
+  padding: 10px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.metric strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.break-info {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.main-btn {
+  min-height: 56px;
+  border: 0;
+  border-radius: 16px;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.main-btn:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.check-in {
+  background: var(--green);
+}
+
+.check-out {
+  background: var(--blue);
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.section-title h2 {
+  margin: 0;
+  font-size: 17px;
+  letter-spacing: 0;
+}
+
+.link-btn {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  cursor: pointer;
+}
+
+textarea {
+  width: 100%;
+  min-height: 70px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  outline: none;
+}
+
+input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  outline: none;
+}
+
+.edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.date-field {
+  margin-bottom: 10px;
+}
+
+.record-list {
+  display: grid;
+  gap: 8px;
+}
+
+.record {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 11px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.record strong {
+  display: block;
+  font-size: 15px;
+}
+
+.record small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.record-time {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+  color: var(--text);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.record-overtime {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.record-overtime.positive {
+  color: #0b6b35;
+}
+
+.record-overtime.negative {
+  color: var(--red);
+}
+
+.record-overtime.neutral {
+  color: var(--muted);
+}
+
+.empty {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.tool-btn {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel-strong);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.danger {
+  color: #ffd0cc;
+  border-color: rgba(255, 69, 58, 0.38);
+}
+
+.file-input {
+  display: none;
+}
+
+@media (max-width: 360px) {
+  body {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .actions,
+  .tools,
+  .edit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="topbar">
+    <div class="brand">
+      <img src="icon.svg" alt="">
+      <div>
+        <h1>Arbeitszeit</h1>
+        <div class="date-label" id="todayLabel"></div>
+      </div>
+    </div>
+    <div class="status-pill" id="statusText">Bereit</div>
+  </header>
+
+  <section class="panel">
+    <div class="hero-time">
+      <div class="clock" id="clock">--:--</div>
+      <div class="date-label" id="weekLabel"></div>
+    </div>
+
+    <div class="field date-field">
+      <label for="workDate">Datum</label>
+      <input type="date" id="workDate">
+    </div>
+
+    <div class="summary">
+      <div class="metric">
+        <span>Kommen</span>
+        <strong id="inTime">--:--</strong>
+      </div>
+      <div class="metric">
+        <span>Gehen</span>
+        <strong id="outTime">--:--</strong>
+      </div>
+      <div class="metric">
+        <span>Netto</span>
+        <strong id="dayDuration">0:00</strong>
+      </div>
+    </div>
+    <div class="break-info" id="breakInfo">Brutto 0:00 · Pause 0:00 · Netto 0:00</div>
+
+    <div class="actions">
+      <button class="main-btn check-in" id="checkInBtn" type="button">Kommen</button>
+      <button class="main-btn check-out" id="checkOutBtn" type="button">Gehen</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="section-title">
+      <h2>Nachtragen / ändern</h2>
+      <button class="link-btn" id="saveManualBtn" type="button">Speichern</button>
+    </div>
+    <div class="edit-grid">
+      <div class="field">
+        <label for="manualIn">Kommen</label>
+        <input type="time" id="manualIn">
+      </div>
+      <div class="field">
+        <label for="manualOut">Gehen</label>
+        <input type="time" id="manualOut">
+      </div>
+    </div>
+    <textarea id="noteInput" placeholder="Projekt, Homeoffice, Pause oder kurze Erinnerung"></textarea>
+  </section>
+
+  <section class="panel">
+    <div class="section-title">
+      <h2>Statistik</h2>
+      <button class="link-btn" id="exportCsvBtn" type="button">CSV</button>
+    </div>
+    <div class="summary">
+      <div class="metric">
+        <span>Diesen Monat</span>
+        <strong id="monthHours">0:00</strong>
+      </div>
+      <div class="metric">
+        <span>Tage</span>
+        <strong id="monthDays">0</strong>
+      </div>
+      <div class="metric">
+        <span>Ø pro Tag</span>
+        <strong id="avgHours">0:00</strong>
+      </div>
+      <div class="metric">
+        <span>Überstunden</span>
+        <strong id="overtimeHours">0:00</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="section-title">
+      <h2>Letzte Einträge</h2>
+      <button class="link-btn" id="showAllBtn" type="button">Alle</button>
+    </div>
+    <div class="record-list" id="recordList"></div>
+  </section>
+
+  <section class="panel">
+    <div class="tools">
+      <button class="tool-btn" id="adjustOvertimeBtn" type="button">Ausgleich</button>
+      <button class="tool-btn" id="importJsonBtn" type="button">Import</button>
+      <button class="tool-btn" id="undoBtn" type="button">Letzten löschen</button>
+      <button class="tool-btn danger" id="clearBtn" type="button">Alles löschen</button>
+    </div>
+    <input class="file-input" id="fileInput" type="file" accept="application/json,.json">
+  </section>
+</main>
+
+<script>
+const STORAGE_KEY = "arbeitszeit.records.v1";
+const TARGET_WORK_MINUTES = 8 * 60;
+const state = {
+  records: loadRecords(),
+  showAll: false,
+  selectedDate: dateKey()
+};
+
+const els = {
+  todayLabel: document.getElementById("todayLabel"),
+  weekLabel: document.getElementById("weekLabel"),
+  statusText: document.getElementById("statusText"),
+  clock: document.getElementById("clock"),
+  workDate: document.getElementById("workDate"),
+  inTime: document.getElementById("inTime"),
+  outTime: document.getElementById("outTime"),
+  dayDuration: document.getElementById("dayDuration"),
+  breakInfo: document.getElementById("breakInfo"),
+  checkInBtn: document.getElementById("checkInBtn"),
+  checkOutBtn: document.getElementById("checkOutBtn"),
+  manualIn: document.getElementById("manualIn"),
+  manualOut: document.getElementById("manualOut"),
+  noteInput: document.getElementById("noteInput"),
+  saveManualBtn: document.getElementById("saveManualBtn"),
+  monthHours: document.getElementById("monthHours"),
+  monthDays: document.getElementById("monthDays"),
+  avgHours: document.getElementById("avgHours"),
+  overtimeHours: document.getElementById("overtimeHours"),
+  recordList: document.getElementById("recordList"),
+  showAllBtn: document.getElementById("showAllBtn"),
+  exportCsvBtn: document.getElementById("exportCsvBtn"),
+  adjustOvertimeBtn: document.getElementById("adjustOvertimeBtn"),
+  importJsonBtn: document.getElementById("importJsonBtn"),
+  fileInput: document.getElementById("fileInput"),
+  undoBtn: document.getElementById("undoBtn"),
+  clearBtn: document.getElementById("clearBtn")
+};
+
+function pad(value) {
+  return String(value).padStart(2, "0");
+}
+
+function dateKey(date = new Date()) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function monthKey(date = new Date()) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+}
+
+function timeText(date = new Date()) {
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function germanDate(date = new Date()) {
+  return new Intl.DateTimeFormat("de-DE", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(date);
+}
+
+function loadRecords() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveRecords() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.records));
+}
+
+function getSelectedRecord() {
+  return state.records.find(record => record.date === state.selectedDate);
+}
+
+function ensureSelectedRecord() {
+  let record = getSelectedRecord();
+  if (!record) {
+    record = {
+      id: Date.now(),
+      date: state.selectedDate,
+      checkIn: "",
+      checkOut: "",
+      note: "",
+      updatedAt: new Date().toISOString()
+    };
+    state.records.push(record);
+  }
+  return record;
+}
+
+function minutesBetween(start, end) {
+  if (!start || !end) return 0;
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  const startMin = sh * 60 + sm;
+  const endMin = eh * 60 + em;
+  return Math.max(0, endMin - startMin);
+}
+
+function statutoryBreakMinutes(grossMinutes) {
+  if (grossMinutes > 6 * 60) return 30;
+  return 0;
+}
+
+function workSummary(record) {
+  if (record?.type === "adjustment") {
+    return {
+      gross: 0,
+      pause: 0,
+      net: 0
+    };
+  }
+  const gross = minutesBetween(record?.checkIn, record?.checkOut);
+  const pause = statutoryBreakMinutes(gross);
+  return {
+    gross,
+    pause,
+    net: Math.max(0, gross - pause)
+  };
+}
+
+function formatMinutes(total) {
+  const sign = total < 0 ? "-" : "";
+  total = Math.abs(total);
+  const hours = Math.floor(total / 60);
+  const minutes = total % 60;
+  return `${sign}${hours}:${pad(minutes)}`;
+}
+
+function formatSignedMinutes(total) {
+  if (total === 0) return "±0:00";
+  const sign = total > 0 ? "+" : "-";
+  total = Math.abs(total);
+  const hours = Math.floor(total / 60);
+  const minutes = total % 60;
+  return `${sign}${hours}:${pad(minutes)}`;
+}
+
+function overtimeClass(total) {
+  if (total > 0) return "positive";
+  if (total < 0) return "negative";
+  return "neutral";
+}
+
+function overtimeForRecord(record) {
+  if (record.type === "adjustment") return record.overtimeAdjustment || 0;
+  if (!record.checkIn || !record.checkOut) return 0;
+  return workSummary(record).net - TARGET_WORK_MINUTES;
+}
+
+function showStatus(text) {
+  els.statusText.textContent = text;
+}
+
+function checkIn() {
+  const record = ensureSelectedRecord();
+  if (record.checkIn && !confirm("Kommen-Zeit überschreiben?")) return;
+  record.checkIn = timeText();
+  record.updatedAt = new Date().toISOString();
+  saveRecords();
+  render();
+  showStatus("Gespeichert");
+}
+
+function checkOut() {
+  const record = ensureSelectedRecord();
+  if (!record.checkIn && !confirm("Ohne Kommen-Zeit speichern?")) return;
+  if (record.checkOut && !confirm("Gehen-Zeit überschreiben?")) return;
+  record.checkOut = timeText();
+  record.updatedAt = new Date().toISOString();
+  saveRecords();
+  render();
+  showStatus("Gespeichert");
+}
+
+function saveManual() {
+  const record = ensureSelectedRecord();
+  record.checkIn = els.manualIn.value;
+  record.checkOut = els.manualOut.value;
+  record.note = els.noteInput.value.trim();
+  record.updatedAt = new Date().toISOString();
+  saveRecords();
+  render();
+  showStatus("Gespeichert");
+}
+
+function addOvertimeAdjustment() {
+  const input = prompt("Wie viele Überstunden sollen abgezogen werden? Beispiel: 1,5 oder 01:30");
+  if (!input) return;
+  const minutes = parseAdjustmentMinutes(input);
+  if (!minutes) {
+    alert("Bitte eine gültige Zeit eingeben, zum Beispiel 1,5 oder 01:30.");
+    return;
+  }
+  state.records.push({
+    id: Date.now(),
+    type: "adjustment",
+    date: state.selectedDate,
+    checkIn: "",
+    checkOut: "",
+    note: "Ausgleich",
+    overtimeAdjustment: -Math.abs(minutes),
+    updatedAt: new Date().toISOString()
+  });
+  saveRecords();
+  render();
+  showStatus("Ausgleich gespeichert");
+}
+
+function parseAdjustmentMinutes(value) {
+  const normalized = String(value).trim().replace(",", ".");
+  if (/^\d{1,2}:\d{1,2}$/.test(normalized)) {
+    const [hours, minutes] = normalized.split(":").map(Number);
+    return hours * 60 + minutes;
+  }
+  const number = Number(normalized);
+  if (!Number.isFinite(number) || number <= 0) return 0;
+  return Math.round(number * 60);
+}
+
+function deleteRecord(id) {
+  const record = state.records.find(item => item.id === id);
+  if (!record) return;
+  if (!confirm(`${record.date} löschen?`)) return;
+  state.records = state.records.filter(item => item.id !== id);
+  saveRecords();
+  render();
+}
+
+function undoLast() {
+  const latest = state.records.slice().sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
+  if (!latest) return;
+  deleteRecord(latest.id);
+}
+
+function clearAll() {
+  if (!state.records.length) return;
+  if (!confirm("Alle gespeicherten Zeiten auf diesem Gerät löschen?")) return;
+  state.records = [];
+  saveRecords();
+  render();
+}
+
+function exportCsv() {
+  if (!state.records.length) {
+    alert("Keine Daten zum Exportieren.");
+    return;
+  }
+  const rows = [["Datum", "Kommen", "Gehen", "Brutto", "Pause", "Netto", "Notiz"]];
+  state.records
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .forEach(record => {
+      const summary = workSummary(record);
+      rows.push([
+        record.date,
+        record.checkIn || "",
+        record.checkOut || "",
+        formatMinutes(summary.gross),
+        formatMinutes(summary.pause),
+        formatMinutes(summary.net),
+        record.note || ""
+      ]);
+    });
+  const csv = rows.map(row => row.map(csvCell).join(",")).join("\n");
+  downloadFile(`arbeitszeit-${dateKey()}.csv`, csv, "text/csv;charset=utf-8");
+}
+
+function csvCell(value) {
+  return `"${String(value).replace(/"/g, '""')}"`;
+}
+
+function exportJson() {
+  const data = JSON.stringify({
+    app: "Arbeitszeit",
+    exportedAt: new Date().toISOString(),
+    records: state.records
+  }, null, 2);
+  downloadFile(`arbeitszeit-backup-${dateKey()}.json`, data, "application/json");
+}
+
+function downloadFile(filename, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJson(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      const incoming = Array.isArray(parsed) ? parsed : parsed.records;
+      if (!Array.isArray(incoming)) throw new Error("Invalid backup");
+      const byId = new Map(state.records.map(record => [record.id || `${record.date}-${record.updatedAt}`, record]));
+      incoming.forEach(record => {
+        if (record.date) {
+          const id = record.id || Date.now() + Math.random();
+          byId.set(id, {
+            type: record.type || "work",
+            overtimeAdjustment: record.overtimeAdjustment || 0,
+            id,
+            date: record.date,
+            checkIn: record.checkIn || "",
+            checkOut: record.checkOut || "",
+            note: record.note || "",
+            updatedAt: record.updatedAt || new Date().toISOString()
+          });
+        }
+      });
+      state.records = Array.from(byId.values()).sort((a, b) => a.date.localeCompare(b.date));
+      saveRecords();
+      render();
+      showStatus("Importiert");
+    } catch (error) {
+      alert("Backup konnte nicht importiert werden.");
+    } finally {
+      event.target.value = "";
+    }
+  };
+  reader.readAsText(file);
+}
+
+function renderClock() {
+  const now = new Date();
+  els.clock.textContent = timeText(now);
+  els.todayLabel.textContent = germanDate(now);
+  els.weekLabel.textContent = `KW ${calendarWeek(now)}`;
+}
+
+function calendarWeek(date) {
+  const copy = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNumber = copy.getUTCDay() || 7;
+  copy.setUTCDate(copy.getUTCDate() + 4 - dayNumber);
+  const yearStart = new Date(Date.UTC(copy.getUTCFullYear(), 0, 1));
+  return Math.ceil((((copy - yearStart) / 86400000) + 1) / 7);
+}
+
+function renderSelectedDay() {
+  const record = getSelectedRecord();
+  const summary = workSummary(record);
+  els.workDate.value = state.selectedDate;
+  els.inTime.textContent = record?.checkIn || "--:--";
+  els.outTime.textContent = record?.checkOut || "--:--";
+  els.dayDuration.textContent = formatMinutes(summary.net);
+  els.breakInfo.textContent = `Brutto ${formatMinutes(summary.gross)} · Pause ${formatMinutes(summary.pause)} · Netto ${formatMinutes(summary.net)}`;
+  els.manualIn.value = record?.checkIn || "";
+  els.manualOut.value = record?.checkOut || "";
+  els.noteInput.value = record?.note || "";
+  els.checkInBtn.textContent = record?.checkIn ? "Kommen ändern" : "Kommen";
+  els.checkOutBtn.textContent = record?.checkOut ? "Gehen ändern" : "Gehen";
+  if (record?.checkOut) showStatus("Fertig");
+  else if (record?.checkIn) showStatus("Läuft");
+  else showStatus("Bereit");
+}
+
+function renderStats() {
+  const currentMonth = monthKey();
+  const workRecords = state.records.filter(record => record.type !== "adjustment");
+  const monthRecords = workRecords.filter(record => record.date.startsWith(currentMonth));
+  const workedDays = monthRecords.filter(record => record.checkIn || record.checkOut).length;
+  const total = monthRecords.reduce((sum, record) => sum + workSummary(record).net, 0);
+  const overtime = state.records.reduce((sum, record) => sum + overtimeForRecord(record), 0);
+  els.monthHours.textContent = formatMinutes(total);
+  els.monthDays.textContent = String(workedDays);
+  els.avgHours.textContent = workedDays ? formatMinutes(Math.round(total / workedDays)) : "0:00";
+  els.overtimeHours.textContent = formatMinutes(overtime);
+}
+
+function renderList() {
+  const records = state.records
+    .slice()
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, state.showAll ? state.records.length : 7);
+
+  els.recordList.innerHTML = "";
+  if (!records.length) {
+    els.recordList.innerHTML = '<p class="empty">Noch keine Einträge auf diesem iPhone.</p>';
+    return;
+  }
+
+  records.forEach(record => {
+    if (record.type === "adjustment") {
+      const adjustment = record.overtimeAdjustment || 0;
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "record";
+      item.innerHTML = `
+        <span>
+          <strong>${record.date}</strong>
+          <small>Ausgleich${record.note && record.note !== "Ausgleich" ? " · " + escapeHtml(record.note) : ""}</small>
+        </span>
+        <span class="record-time">
+          <span>Überstunden</span>
+          <span class="record-overtime ${overtimeClass(adjustment)}">${formatSignedMinutes(adjustment)}</span>
+        </span>
+      `;
+      item.onclick = () => deleteRecord(record.id);
+      els.recordList.appendChild(item);
+      return;
+    }
+    const summary = workSummary(record);
+    const overtime = overtimeForRecord(record);
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "record";
+    item.innerHTML = `
+      <span>
+        <strong>${record.date}</strong>
+        <small>${record.checkIn || "--:--"} - ${record.checkOut || "--:--"} · Pause ${formatMinutes(summary.pause)}${record.note ? " · " + escapeHtml(record.note) : ""}</small>
+      </span>
+      <span class="record-time">
+        <span>${formatMinutes(summary.net)}</span>
+        <span class="record-overtime ${overtimeClass(overtime)}">${formatSignedMinutes(overtime)}</span>
+      </span>
+    `;
+    item.onclick = () => {
+      state.selectedDate = record.date;
+      render();
+      showStatus("Datum geladen");
+    };
+    els.recordList.appendChild(item);
+  });
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function render() {
+  renderClock();
+  renderSelectedDay();
+  renderStats();
+  renderList();
+  els.showAllBtn.textContent = state.showAll ? "Weniger" : "Alle";
+}
+
+els.workDate.addEventListener("change", () => {
+  state.selectedDate = els.workDate.value || dateKey();
+  render();
+});
+els.checkInBtn.addEventListener("click", checkIn);
+els.checkOutBtn.addEventListener("click", checkOut);
+els.saveManualBtn.addEventListener("click", saveManual);
+els.exportCsvBtn.addEventListener("click", exportCsv);
+els.adjustOvertimeBtn.addEventListener("click", addOvertimeAdjustment);
+els.importJsonBtn.addEventListener("click", () => els.fileInput.click());
+els.fileInput.addEventListener("change", importJson);
+els.undoBtn.addEventListener("click", undoLast);
+els.clearBtn.addEventListener("click", clearAll);
+els.showAllBtn.addEventListener("click", () => {
+  state.showAll = !state.showAll;
+  render();
+});
+
+render();
+setInterval(renderClock, 15000);
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>
