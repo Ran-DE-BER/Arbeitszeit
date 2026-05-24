@@ -211,6 +211,7 @@ h1 {
 textarea {
   width: 100%;
   min-height: 70px;
+  margin-top: 10px;
   resize: vertical;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -222,22 +223,26 @@ textarea {
 
 input {
   width: 100%;
-  min-height: 44px;
+  min-width: 0;
+  height: 42px;
+  min-height: 42px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
   outline: none;
+  text-align: center;
 }
 
 .edit-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
 }
 
 .field {
+  min-width: 0;
   display: grid;
   gap: 6px;
 }
@@ -248,7 +253,12 @@ input {
 }
 
 .date-field {
-  margin-bottom: 10px;
+  width: min(100%, 280px);
+  margin: 0 auto 10px;
+}
+
+.date-field input {
+  height: 40px;
 }
 
 .record-list {
@@ -345,12 +355,7 @@ input {
   }
 
   .actions,
-  .tools,
-  .edit-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .summary {
+  .tools {
     grid-template-columns: 1fr;
   }
 }
