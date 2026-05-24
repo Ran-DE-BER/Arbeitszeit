@@ -13,7 +13,7 @@
 <style>
 :root {
   color-scheme: dark;
-  --date-input-width: 340px;
+  --date-input-width: 280px;
   --date-input-height: 40px;
   --stat-card-min-width: 110px;
   --stat-card-min-height: 58px;
@@ -283,6 +283,7 @@ input {
 
 .record-row {
   position: relative;
+  width: 100%;
   overflow: hidden;
   border-radius: 14px;
   touch-action: pan-y;
@@ -291,6 +292,7 @@ input {
 .record-actions {
   position: absolute;
   inset: 0 0 0 auto;
+  z-index: 0;
   display: grid;
   grid-template-columns: 78px 78px;
   width: 156px;
@@ -313,6 +315,7 @@ input {
 .record {
   position: relative;
   z-index: 1;
+  width: 100%;
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 10px;
